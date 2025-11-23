@@ -22,7 +22,7 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    fulName: {
+    fullName: {
         type: String,
         required: true,
         trim: true,
@@ -43,11 +43,11 @@ const userSchema = new Schema({
     },
 
 }, { timestamps: true });
-userSchema.pre('save', function (next) {
-    userName = this.userName.toLowerCase();
-    email = this.email.toLowerCase();
+userSchema.pre('save',async function (next) {
+    this.userName = this.userName.toLowerCase();
+    this.email = this.email.toLowerCase();
     if (!this.isModified('password')) return next();
-    this.password = bcrypt.hash(this.password, 10);
+    this.password =await bcrypt.hash(this.password, 10);
     next();
 });
 
@@ -55,8 +55,8 @@ userSchema.methods.isPasswordMatch = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 
-userSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign(
+userSchema.methods.generateAuthToken =async function () {
+    const token =await jwt.sign(
         { _id: this._id, userName: this.userName, email: this.email },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }

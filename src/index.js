@@ -1,31 +1,22 @@
 
-import path from "path";
-import { fileURLToPath } from "url";
-import dotenv from "dotenv"
+// 1. method
+
+import './config.js'
+
 import { DB_NAME } from "./constants.js";
+// import connectDB from "./db/index.js"; // normal import (preferred)
 import { app } from "./app.js";
 
-console.log("db name--->",DB_NAME)
-
-
-// Resolve __dirname in ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load .env from parent folder of src
- dotenv.config({ path: path.resolve(__dirname, "../.env") });
-console.log("env--->",process.env.DATABASE_URI)
 
 const { default: connectDB } = await import("./db/index.js");
-
-
 connectDB().then(()=>{
-    app.listen(process.env.PORT||8000,()=>{
+    app.listen(process.env.PORT||5000,()=>{
         console.log(`Server is running on Port ${process.env.PORT}`)
     })
 }).catch((error)=>{
     console.log("Mongo db connection failed !!",error)
 })
+
 
 
 /*
@@ -52,3 +43,4 @@ const app=express();
     }
 })()
     */
+
