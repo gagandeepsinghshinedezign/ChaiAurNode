@@ -12,6 +12,6 @@ const subscriprionSchema=new Schema({
         ref:"User"
     }
 
-})
+},{ timestamps: true })
 
 export const Subscription=mongoose.model("Subscription",subscriprionSchema)

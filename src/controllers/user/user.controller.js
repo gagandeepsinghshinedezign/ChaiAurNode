@@ -265,4 +265,81 @@ const updateProfileImage = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "Avatar updated successfully."))
 })
 
-export { registerUser, login, logout, refreshAccessToken, changePassword, getCurrentUser, updateUserDetails, updateProfileImage }
+const gerUserChannelProfile = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+        throw new ApiError(400, "ChannelId is required.")
+    }
+
+    const userChannel = await User.aggregate([
+        {
+            $match: { username: username?.toLowerCase() }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers"
+                },
+                subscribedToCount: {
+                    $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [req?.user?._id, "$subscribers?.subscriber"] },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                fullName: 1,
+                userName: 1,
+                email: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscribersCount: 1,
+                subscribedToCount: 1,
+                isSubscribed: 1
+
+            }
+        }
+    ])
+
+    if (!userChannel || userChannel.length === 0) {
+        throw new ApiError(404, "User channel not found.")
+    }
+
+    return res.status(200).json(new ApiResponse(200, userChannel[0], "User channel fetched successfully."))
+
+})
+
+
+export {
+    registerUser,
+    login,
+    logout,
+    refreshAccessToken,
+    changePassword,
+    getCurrentUser,
+    updateUserDetails,
+    updateProfileImage,
+    gerUserChannelProfile
+}
